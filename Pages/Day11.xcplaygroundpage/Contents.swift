@@ -1,126 +1,24 @@
 //: [Previous](@previous)
 
 import Foundation
-//pre 2090 (114) 2160 (240)
-// 2902 too high, 1050 too low
-
 let data = Array(getInput(forResource:"seatSystem")!.dropLast()).map { $0.map(String.init) }
-print(data)
 
-func partOne(_ data: [[String]]) -> Int? {
-    var input = data
-
-        var noChange = 0
-        
-        while noChange < input[0].count * input.count {
-            var newInput = [[String]]()
-            var total = 0
-            
-            
-            outer: for row in 0..<input.count {
-                newInput.append([])
-                inner: for item in 0..<input[row].count {
-                    
-                    let current = input[row][item]
-                    if current == "." {
-                        noChange += 1
-                        newInput[row].append(".")
-                        continue
-                    }
-                    
-                    var occupied = 0
-                    
-                    if row - 1 >= 0 {
-                        let top = input[row - 1][item]
-                        if top == "#"{
-                            occupied += 1
-                        }
-                    }
-                    
-                    if row - 1 >= 0 && item - 1 < input[row].count && item - 1 >= 0 {
-                        let top = input[row - 1][item - 1]
-                        if top == "#"{
-                            occupied += 1
-                        }
-                    }
-                    
-                    if row + 1 < input.count && item + 1 < input[row].count {
-                        let top = input[row + 1][item + 1]
-                        if top == "#"{
-                            occupied += 1
-                        }
-                    }
-                    
-                    
-                    if row + 1 < input.count && item - 1 < input[row].count && item - 1 >= 0  {
-                        let top = input[row + 1][item - 1]
-                        if top == "#"{
-                            occupied += 1
-                        }
-                    }
-                    
-                    if row - 1 >= 0 && item + 1 < input[row].count {
-                        let top = input[row - 1][item + 1]
-                        if top == "#"{
-                            occupied += 1
-                        }
-                    }
-                    
-                    if row + 1 < input.count {
-                        let bottom = input[row + 1][item]
-                        if bottom == "#"{
-                            occupied += 1
-                        }
-                    }
-                    
-                    
-                    if item - 1 < input[row].count && item - 1 >= 0 {
-                        let left = input[row][item - 1]
-                        if left == "#"{
-                            occupied += 1
-                        }
-                    }
-                    if item + 1 < input[row].count {
-                        let right = input[row][item + 1]
-                        if right == "#"{
-                            occupied += 1
-                        }
-                    }
-                    
-                    if current == "#" && occupied >= 4 {
-                        newInput[row].append("L")
-                    }else if current == "L" && occupied == 0 {
-                        newInput[row].append("#")
-                        total += 1
-                    }else {
-                        if current == "#" { total += 1 }
-                        noChange += 1
-                        newInput[row].append(String(current))
-                        print("noChange", noChange, total)
-                        if noChange >= input[row].count * input.count {
-                            print("DONE! No more changes", total)
-                            return total
-                        }
-                    }
-                    
-                }
-                
-            }
-            print(newInput)
-            input = newInput
-            noChange = 0
-            print("TOTAL", total)
+extension Array {
+    public subscript(safe index: Int) -> Element? {
+        guard index >= 0, index < endIndex else {
+            return nil
         }
-    return nil
+        
+        return self[index]
+    }
 }
 
-partOne(data)
-
-var input = data
-func simulate(){
+func partOne(_ data: [[String]]) -> Int? {
+    let totalCells = data.first!.count * data.count
+    var input = data
     var noChange = 0
     
-    while noChange < input[0].count * input.count {
+    while noChange < totalCells {
         var newInput = [[String]]()
         var total = 0
         
@@ -129,13 +27,92 @@ func simulate(){
             
             inner: for item in 0..<input[row].count {
                 let current = input[row][item]
+                var occupied = 0
+                
+                if current == "." {
+                    noChange += 1
+                    newInput[row].append(".")
+                    continue inner
+                }
+                
+                for x in [-1,0,1] {
+                    for y in [-1,0,1] {
+                        if x == 0 && y == 0 { continue } // that's the current cell
+                        if let cell = input[safe: row + x]?[safe: item + y], cell == "#" {
+                            occupied += 1
+                        }
+                    }
+                }
+                
+                if current == "#" && occupied >= 4 {
+                    newInput[row].append("L")
+                }else if current == "L" && occupied == 0 {
+                    newInput[row].append("#")
+                    total += 1
+                }else {
+                    noChange += 1
+                    if current == "#" { total += 1 }
+                    newInput[row].append(String(current))
+                    if noChange >= input[row].count * input.count {
+                        return total
+                    }
+                }
+            }
+        }
+        
+        input = newInput
+        noChange = 0
+    }
+    
+    return nil
+}
+
+partOne(data) //2368
+
+func partTwo(_ data: [[String]]) -> Int? {
+    let totalCells = data.first!.count * data.count
+    var input = data
+    var noChange = 0
+    
+    while noChange < totalCells {
+        var newInput = [[String]]()
+        var total = 0
+        
+        outer: for row in 0..<input.count {
+            newInput.append([])
+            
+            inner: for item in 0..<input[row].count {
+                let current = input[row][item]
+                var occupied = 0
                 if current == "." {
                     noChange += 1
                     newInput[row].append(".")
                     continue
                 }
                 
-                var occupied = 0
+//                for x in [-1,0,1] {
+//                    for y in [-1,0,1] {
+//                        if x == 0 && y == 0 { continue } // that's the current cell
+//                        var i = 0
+//
+//                        let newRow = row+i*x
+//                        let newCol = item+i*y
+//
+//                        while 0 <= newRow
+//                            && newRow < input.count
+//                            && 0 <= newCol
+//                            && newCol < input[row].count {
+//                                let cell = input[newRow][newCol]
+//                                if cell != "." {
+//                                    visible.append(input[newRow][newCol])
+//                                    break
+//                                }
+//
+//                                i += 1
+//                        }
+//                    }
+//                }
+//                let occupied = visible.filter({$0 == "#"}).count
                 
                 var i = row
                 //bottom
@@ -150,7 +127,7 @@ func simulate(){
                     i -= 1
                 }
                 var j = row
-                
+
                 //top
                 while j + 1 < input.count {
                     if input[j + 1][item] == "#"  {
@@ -162,7 +139,7 @@ func simulate(){
                     }
                     j += 1
                 }
-                
+
                 //right
                 var right = item
                 while right + 1 < input[row].count {
@@ -183,7 +160,6 @@ func simulate(){
                     }
                     left-=1
                 }
-                //                print("LEFT", occupied)
                 //bottom left
                 var k = row
                 var l = item
@@ -199,7 +175,7 @@ func simulate(){
                     k-=1
                     l-=1
                 }
-                
+
                 //bottom right
                 var o = row
                 var p = item
@@ -218,7 +194,7 @@ func simulate(){
                 //topLeft
                 var m = row
                 var n = item
-                
+
                 while m + 1 < input.count && n - 1 < input[m].count && n - 1 >= 0  {
                     let top = input[m + 1][n - 1]
                     if top == "#"{
@@ -231,11 +207,11 @@ func simulate(){
                     m+=1
                     n-=1
                 }
-                
+
                 //topRight
                 var q = row
                 var r = item
-                
+
                 while q + 1 < input.count && r + 1 < input[q].count  {
                     let top = input[q + 1][r + 1]
                     if top == "#"{
@@ -249,32 +225,30 @@ func simulate(){
                     r+=1
                 }
                 
-                //                print(row, item, input[row][item], occupied)
                 if current == "#" && occupied >= 5 {
                     newInput[row].append("L")
                 }else if current == "L" && occupied == 0 {
                     newInput[row].append("#")
                     total += 1
                 }else {
-                    if current == "#" { total += 1 }
                     noChange += 1
+                    if current == "#" { total += 1 }
                     newInput[row].append(String(current))
-                    //                    print("noChange", noChange, total)
                     if noChange >= input[row].count * input.count {
-                        print("DONE! No more changes", total, newInput)
-                        return
+                        return total
                     }
                 }
                 
             }
             
         }
-        print(newInput)
+        
         input = newInput
         noChange = 0
-        print("TOTAL", total)
     }
+    
+    return nil
 }
 
-simulate()
-//simulate()
+partTwo(data) //2124
+
